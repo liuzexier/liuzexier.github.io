@@ -1,25 +1,31 @@
-// FPS统计模块
+// FPS统计模块，使用Web Worker
 (function () {
-  let frame = 0;
-  let fps = 0;
-  let lastFpsUpdate = performance.now();
   const fpsSpan = document.getElementById('fps');
+  if (!fpsSpan) return;
 
-  function updateFPS() {
-    frame++;
-    const now = performance.now();
-    if (now - lastFpsUpdate >= 1000) { // 每1秒更新一次显示
-      fps = Math.round((frame * 1000) / (now - lastFpsUpdate));
-      if (fpsSpan) {
-        fpsSpan.textContent = fps;
+  // 创建worker代码
+  const workerCode = `
+    let frame = 0;
+    let lastFpsUpdate = performance.now();
+    function tick() {
+      frame++;
+      const now = performance.now();
+      if (now - lastFpsUpdate >= 500) {
+        const fps = Math.round((frame * 1000) / (now - lastFpsUpdate));
+        postMessage(fps);
+        lastFpsUpdate = now;
+        frame = 0;
       }
-      lastFpsUpdate = now;
-      frame = 0;
+      requestAnimationFrame(tick);
     }
-    window.requestAnimationFrame(updateFPS);
-  }
+    tick();
+  `;
 
-  if (fpsSpan) {
-    window.requestAnimationFrame(updateFPS);
-  }
+  // 创建Blob和Worker
+  const blob = new Blob([workerCode], { type: 'application/javascript' });
+  const worker = new Worker(URL.createObjectURL(blob));
+
+  worker.onmessage = function (e) {
+    fpsSpan.textContent = e.data;
+  };
 })();
