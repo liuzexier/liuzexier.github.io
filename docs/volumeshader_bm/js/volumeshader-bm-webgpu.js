@@ -127,7 +127,7 @@ async function initWebGPU() {
 
   // Uniform buffer
   uniformBuffer = device.createBuffer({
-    size: 256, // 16 个 float32 数值 (4 bytes each)
+    size: 20 * 4, // 16 个 float32 数值 (4 bytes each)
     usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
   });
 
